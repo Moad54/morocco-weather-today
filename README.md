@@ -16,6 +16,7 @@ Netlify / Cloudflare Pages / any Node 18+ host also work (`npm run build`, then 
 
 ## Structure
     app/         layout, page, global styles, icon
+    components/Dock.tsx  floating bottom navigation (Liquid Glass)
     components/  Header, CurrentCard, HourlyCard, DailyCard, MetricsGrid, ThunderCard, AlertsCard, Overview, WeatherMap, Glass, WeatherIcon
     lib/         cities.ts, i18n.ts (EN/AR), weather.ts (Open-Meteo + alert logic)
 
