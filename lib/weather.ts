@@ -7,6 +7,7 @@ export interface Forecast {
   daily: { time: string[]; weather_code: number[]; temperature_2m_max: number[]; temperature_2m_min: number[]; precipitation_sum: number[];
     wind_gusts_10m_max: number[]; precipitation_probability_max: number[] };
 }
+export type MapLayer = "map" | "sat" | "rain" | "cloud";
 export type Kind = "clear" | "partly" | "cloudy" | "fog" | "drizzle" | "rain" | "snow" | "storm";
 
 export async function fetchAll(): Promise<Forecast[]> {

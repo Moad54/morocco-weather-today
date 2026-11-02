@@ -4,19 +4,17 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { CITIES } from "@/lib/cities";
 import { Dict, Lang } from "@/lib/i18n";
-import { Forecast } from "@/lib/weather";
+import { Forecast, MapLayer as Layer } from "@/lib/weather";
 import { Glass, H } from "@/components/Glass";
 
-type Layer = "map" | "sat" | "rain" | "cloud";
 interface Frames { host: string; radar?: { past: { path: string }[] }; satellite?: { infrared: { path: string }[] } }
 
-export default function WeatherMap({ all, sel, lang, t, onPick }: { all: Forecast[]; sel: string; lang: Lang; t: Dict; onPick: (id: string) => void }) {
+export default function WeatherMap({ all, sel, lang, t, onPick, layer, onLayer }: { all: Forecast[]; sel: string; lang: Lang; t: Dict; onPick: (id: string) => void; layer: Layer; onLayer: (l: Layer) => void }) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const base = useRef<L.TileLayer | null>(null);
   const over = useRef<L.TileLayer | null>(null);
   const pins = useRef<L.LayerGroup | null>(null);
-  const [layer, setLayer] = useState<Layer>("map");
   const [rv, setRv] = useState<Frames | null>(null);
 
   useEffect(() => {
@@ -53,10 +51,10 @@ export default function WeatherMap({ all, sel, lang, t, onPick }: { all: Forecas
 
   const tabs: [Layer, string][] = [["map", t.lMap], ["sat", t.lSat], ["rain", t.lRain], ["cloud", t.lCloud]];
   return (
-    <Glass delay={280}>
+    <Glass id="map" delay={280}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-white/90">{t.map}</h2>
-        <div className="flex flex-wrap gap-1">{tabs.map(([k, l]) => <button key={k} data-on={layer === k} onClick={() => setLayer(k)} className="chip px-3 py-1 text-xs">{l}</button>)}</div>
+        <div className="flex flex-wrap gap-1">{tabs.map(([k, l]) => <button key={k} data-on={layer === k} onClick={() => onLayer(k)} className="chip px-3 py-1 text-xs">{l}</button>)}</div>
       </div>
       <div ref={el} className="h-[380px] overflow-hidden rounded-2xl sm:h-[480px]" dir="ltr" />
       <p className="mt-3 text-xs text-white/45">{t.radarNote}</p>

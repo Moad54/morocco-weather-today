@@ -8,7 +8,7 @@ import { WeatherIcon } from "./WeatherIcon";
 export function CurrentCard({ city, f, lang, t }: { city: City; f: Forecast; lang: Lang; t: Dict }) {
   const c = f.current, k = kind(c.weather_code);
   return (
-    <Glass className="flex flex-col justify-between gap-6 bg-gradient-to-br from-volt/20 to-transparent">
+    <Glass id="temperature" className="flex flex-col justify-between gap-6 bg-gradient-to-br from-volt/20 to-transparent">
       <div className="flex items-start justify-between">
         <div>
           <p className="flex items-center gap-1.5 text-lg font-medium"><MapPin size={18} className="text-volt" />{lang === "ar" ? city.ar : city.en}</p>

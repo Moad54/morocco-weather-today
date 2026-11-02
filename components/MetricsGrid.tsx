@@ -14,7 +14,7 @@ const Tile = ({ icon, label, value, extra }: { icon: ReactNode; label: string; v
 export function MetricsGrid({ f, t }: { f: Forecast; t: Dict }) {
   const c = f.current, ic = { size: 14, className: "text-volt" };
   return (
-    <Glass delay={120}>
+    <Glass id="wind" delay={120}>
       <H>{t.details}</H>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Tile icon={<Wind {...ic} />} label={t.wind} value={`${Math.round(c.wind_speed_10m)} ${t.kmh}`}
