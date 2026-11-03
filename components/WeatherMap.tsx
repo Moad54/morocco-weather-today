@@ -40,23 +40,29 @@ export default function WeatherMap({ all, sel, lang, t, onPick, layer, onLayer }
   useEffect(() => {
     pins.current?.clearLayers();
     CITIES.forEach((c, i) => {
-      const icon = L.divIcon({ className: "", html: `<div class="pin" data-on="${c.id === sel}">${Math.round(all[i].current.temperature_2m)}° ${lang === "ar" ? c.ar : c.en}</div>`, iconSize: [0, 0] });
-      L.marker([c.lat, c.lon], { icon }).on("click", () => onPick(c.id)).addTo(pins.current!);
+      const w = all[i].current, name = lang === "ar" ? c.ar : c.en;
+      const hue = Math.max(0, Math.min(220, 220 - (w.temperature_2m + 5) * 4.4));
+      const body = layer === "wind"
+        ? `${name} <span style="display:inline-block;transform:rotate(${w.wind_direction_10m + 180}deg)">↑</span> ${Math.round(w.wind_speed_10m)} ${t.kmh}`
+        : `${Math.round(w.temperature_2m)}° ${name}`;
+      const style = layer === "temp" ? ` style="background:hsl(${hue} 85% 42% / .92)"` : "";
+      const icon = L.divIcon({ className: "", html: `<div class="pin" data-on="${c.id === sel}"${style}>${body}</div>`, iconSize: [0, 0] });
+      L.marker([c.lat, c.lon], { icon, keyboard: false }).on("click", () => onPick(c.id)).addTo(pins.current!);
     });
-  }, [all, sel, lang, onPick]);
+  }, [all, sel, lang, onPick, layer, t.kmh]);
 
   useEffect(() => {
     const c = CITIES.find((x) => x.id === sel); if (c) map.current?.flyTo([c.lat, c.lon], Math.max(map.current.getZoom(), 6), { duration: 1.2 });
   }, [sel]);
 
-  const tabs: [Layer, string][] = [["map", t.lMap], ["sat", t.lSat], ["rain", t.lRain], ["cloud", t.lCloud]];
+  const tabs: [Layer, string][] = [["map", t.lMap], ["sat", t.lSat], ["rain", t.lRain], ["cloud", t.lCloud], ["wind", t.nav.wind], ["temp", t.nav.temp]];
   return (
     <Glass id="map" delay={280}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-white/90">{t.map}</h2>
         <div className="flex flex-wrap gap-1">{tabs.map(([k, l]) => <button key={k} data-on={layer === k} onClick={() => onLayer(k)} className="chip px-3 py-1 text-xs">{l}</button>)}</div>
       </div>
-      <div ref={el} className="h-[380px] overflow-hidden rounded-2xl sm:h-[480px]" dir="ltr" />
+      <div ref={el} className="h-[400px] overflow-hidden rounded-2xl sm:h-[500px] lg:h-[640px]" dir="ltr" />
       <p className="mt-3 text-xs text-white/45">{t.radarNote}</p>
     </Glass>
   );

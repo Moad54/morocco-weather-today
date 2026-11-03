@@ -1,9 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const arabic = Noto_Sans_Arabic({ subsets: ["arabic"], variable: "--font-arabic" });
+
+export const viewport: Viewport = { viewportFit: "cover", themeColor: "#050b1f", width: "device-width", initialScale: 1 };
 
 export const metadata: Metadata = {
   title: "Morocco Weather Today",

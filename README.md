@@ -22,4 +22,6 @@ Netlify / Cloudflare Pages / any Node 18+ host also work (`npm run build`, then 
 
 All 14 cities load in one Open-Meteo request, refreshed every 10 minutes. No data is mocked.
 Alerts are derived from forecast thresholds, not official warnings (see marocmeteo.ma).
+Sunrise/sunset card (SunCard) and weather-themed backgrounds come from the same Open-Meteo data.
+Map layers: map, satellite, precipitation, clouds, wind, temperature (wind/temperature use live Open-Meteo city values).
 Map: CARTO dark tiles, Esri satellite, RainViewer radar/cloud overlays.

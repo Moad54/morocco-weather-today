@@ -4,10 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { CITIES } from "@/lib/cities";
 import { Lang, T } from "@/lib/i18n";
-import { Forecast, MapLayer, fetchAll } from "@/lib/weather";
+import { Forecast, MapLayer, fetchAll, kind } from "@/lib/weather";
 import { AlertsCard } from "@/components/AlertsCard";
 import { CurrentCard } from "@/components/CurrentCard";
 import { DailyCard } from "@/components/DailyCard";
+import { SunCard } from "@/components/SunCard";
 import { Dock, DockKey } from "@/components/Dock";
 import { Glass } from "@/components/Glass";
 import { Header } from "@/components/Header";
@@ -35,7 +36,7 @@ export default function Page() {
   useEffect(() => { load(); const id = setInterval(load, 10 * 60 * 1000); return () => clearInterval(id); }, [load]);
   useEffect(() => { document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; }, [lang]);
 
-  const layerKey = (l: MapLayer): DockKey | null => ({ cloud: "clouds", sat: "satellite", rain: "rain", map: null } as const)[l];
+  const layerKey = (l: MapLayer): DockKey | null => ({ cloud: "clouds", sat: "satellite", rain: "rain", wind: "wind", temp: "temp", map: null } as const)[l];
   const changeLayer = useCallback((l: MapLayer) => { layerRef.current = l; setLayer(l); setActive(layerKey(l)); }, []);
 
   const go = useCallback((k: DockKey) => {
@@ -62,8 +63,14 @@ export default function Page() {
   }, [all]);
 
   const idx = Math.max(0, CITIES.findIndex((c) => c.id === sel));
+  // Weather-themed ambient background (clear / rain / storm / night ...) from the selected city's live conditions.
+  useEffect(() => {
+    if (!all) return;
+    const c = all[idx].current;
+    document.body.dataset.wx = c.is_day ? kind(c.weather_code) : "night";
+  }, [all, idx]);
   return (
-    <main className="mx-auto max-w-7xl space-y-5 px-4 pb-40 pt-6 sm:px-6 sm:pb-44 sm:pt-10">
+    <main className="mx-auto max-w-7xl space-y-5 max-w-[1500px] px-4 pb-40 pt-[calc(env(safe-area-inset-top,0px)+24px)] sm:px-6 sm:pb-44 lg:pb-14 lg:pe-8 lg:ps-28 lg:pt-10">
       <Header lang={lang} t={t} onLang={setLang} onPick={setSel} />
       {!all && error && (
         <Glass className="flex flex-col items-center gap-3 py-14 text-center" >
@@ -90,7 +97,8 @@ export default function Page() {
             </div>
           </div>
           <DailyCard f={all[idx]} lang={lang} t={t} />
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+            <SunCard f={all[idx]} t={t} />
             <ThunderCard all={all} lang={lang} t={t} onPick={setSel} />
             <AlertsCard all={all} lang={lang} t={t} />
           </div>

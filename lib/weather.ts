@@ -5,9 +5,9 @@ export interface Forecast {
     wind_speed_10m: number; wind_direction_10m: number; wind_gusts_10m: number; precipitation: number; weather_code: number; is_day: number };
   hourly: { time: string[]; temperature_2m: number[]; precipitation: number[]; weather_code: number[]; wind_gusts_10m: number[]; precipitation_probability: number[] };
   daily: { time: string[]; weather_code: number[]; temperature_2m_max: number[]; temperature_2m_min: number[]; precipitation_sum: number[];
-    wind_gusts_10m_max: number[]; precipitation_probability_max: number[] };
+    wind_gusts_10m_max: number[]; precipitation_probability_max: number[]; sunrise: string[]; sunset: string[] };
 }
-export type MapLayer = "map" | "sat" | "rain" | "cloud";
+export type MapLayer = "map" | "sat" | "rain" | "cloud" | "wind" | "temp";
 export type Kind = "clear" | "partly" | "cloudy" | "fog" | "drizzle" | "rain" | "snow" | "storm";
 
 export async function fetchAll(): Promise<Forecast[]> {
@@ -16,7 +16,7 @@ export async function fetchAll(): Promise<Forecast[]> {
     timezone: "Africa/Casablanca", forecast_days: "14", wind_speed_unit: "kmh",
     current: "temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,weather_code,is_day",
     hourly: "temperature_2m,precipitation,weather_code,wind_gusts_10m,precipitation_probability",
-    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_gusts_10m_max,precipitation_probability_max",
+    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_gusts_10m_max,precipitation_probability_max,sunrise,sunset",
   });
   const r = await fetch(`https://api.open-meteo.com/v1/forecast?${p}`);
   if (!r.ok) throw new Error(`Open-Meteo ${r.status}`);

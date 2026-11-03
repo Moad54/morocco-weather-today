@@ -19,6 +19,7 @@ export function Dock({ active, t, onSelect }: { active: DockKey | null; t: Dict;
         <button key={k} type="button" className="dock-btn" data-on={active === k} aria-label={t.nav[k]} title={t.nav[k]}
           aria-current={active === k ? "true" : undefined} onClick={() => onSelect(k)}>
           <Icon size={24} strokeWidth={1.7} />
+          <span className="dock-label">{t.nav[k]}</span>
         </button>
       ))}
     </nav>
