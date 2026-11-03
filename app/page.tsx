@@ -19,11 +19,18 @@ import { ThunderCard } from "@/components/ThunderCard";
 
 const WeatherMap = dynamic(() => import("@/components/WeatherMap"), { ssr: false, loading: () => <div className="skeleton h-[520px]" /> });
 
-// Exhaustive map: the compiler errors if a MapLayer is ever added without a dock mapping, so this never yields undefined.
-const LAYER_TO_DOCK: Record<MapLayer, DockKey | null> = {
-  cloud: "clouds", sat: "satellite", rain: "rain", wind: "wind", temp: "temp", map: null,
+// Exhaustive switch: every MapLayer is handled, and the `never` check fails the build if a new layer is added without a mapping.
+const layerKey = (l: MapLayer): DockKey | null => {
+  switch (l) {
+    case "cloud": return "clouds";
+    case "sat": return "satellite";
+    case "rain": return "rain";
+    case "wind": return "wind";
+    case "temp": return "temp";
+    case "map": return null;
+    default: { const unreachable: never = l; return unreachable; }
+  }
 };
-const layerKey = (l: MapLayer): DockKey | null => LAYER_TO_DOCK[l];
 
 export default function Page() {
   const [lang, setLang] = useState<Lang>("en");

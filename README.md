@@ -25,3 +25,9 @@ Alerts are derived from forecast thresholds, not official warnings (see marocmet
 Sunrise/sunset card (SunCard) and weather-themed backgrounds come from the same Open-Meteo data.
 Map layers: map, satellite, precipitation, clouds, wind, temperature (wind/temperature use live Open-Meteo city values).
 Map: CARTO dark tiles, Esri satellite, RainViewer radar/cloud overlays.
+
+## Troubleshooting Vercel
+- Build error mentioning `lib/components/app/page.tsx`: that is a stray copy of page.tsx inside your repo (the real one is `app/page.tsx`).
+  Delete the `lib/components/` folder on GitHub (press `t` in the repo and search `page.tsx` to find every copy).
+- Vercel → Settings → General → Root Directory must be empty (or the folder that contains `package.json`).
+- Redeploy without the build cache.
