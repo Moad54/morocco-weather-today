@@ -19,6 +19,12 @@ import { ThunderCard } from "@/components/ThunderCard";
 
 const WeatherMap = dynamic(() => import("@/components/WeatherMap"), { ssr: false, loading: () => <div className="skeleton h-[520px]" /> });
 
+// Exhaustive map: the compiler errors if a MapLayer is ever added without a dock mapping, so this never yields undefined.
+const LAYER_TO_DOCK: Record<MapLayer, DockKey | null> = {
+  cloud: "clouds", sat: "satellite", rain: "rain", wind: "wind", temp: "temp", map: null,
+};
+const layerKey = (l: MapLayer): DockKey | null => LAYER_TO_DOCK[l];
+
 export default function Page() {
   const [lang, setLang] = useState<Lang>("en");
   const [all, setAll] = useState<Forecast[] | null>(null);
@@ -36,7 +42,6 @@ export default function Page() {
   useEffect(() => { load(); const id = setInterval(load, 10 * 60 * 1000); return () => clearInterval(id); }, [load]);
   useEffect(() => { document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; }, [lang]);
 
-  const layerKey = (l: MapLayer): DockKey | null => ({ cloud: "clouds", sat: "satellite", rain: "rain", wind: "wind", temp: "temp", map: null } as const)[l];
   const changeLayer = useCallback((l: MapLayer) => { layerRef.current = l; setLayer(l); setActive(layerKey(l)); }, []);
 
   const go = useCallback((k: DockKey) => {
