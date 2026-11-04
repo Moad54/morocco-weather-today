@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0e">
+<title>Offline · Morocco Weather Today</title>
+<style>
+  :root { color-scheme: dark light; }
+  body { margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #050507; color: #f2f4f8; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; }
+  main { max-width: 420px; padding: 32px 24px; border-radius: 28px; background: #17171b; border: 1px solid rgba(255,255,255,.1); }
+  img { width: 72px; height: 72px; border-radius: 18px; }
+  h1 { font-size: 1.25rem; margin: 16px 0 4px; }
+  p { margin: 4px 0; color: rgba(255,255,255,.65); font-size: .95rem; }
+  button { margin-top: 20px; padding: 12px 24px; border: 0; border-radius: 9999px; background: #bcdcf5; color: #0c1a28; font: 600 .95rem inherit; font-family: inherit; cursor: pointer; }
+  button:focus-visible { outline: 2px solid #8ec5ff; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <img src="/icons/icon-192.png" alt="" width="72" height="72">
+  <h1>You are offline</h1>
+  <p>Live weather needs an internet connection. Reconnect and try again.</p>
+  <h1 lang="fr">Vous êtes hors ligne</h1>
+  <p lang="fr">La météo en direct nécessite une connexion. Reconnectez-vous puis réessayez.</p>
+  <h1 lang="ar" dir="rtl">أنت غير متصل بالإنترنت</h1>
+  <p lang="ar" dir="rtl">يتطلب الطقس المباشر اتصالًا بالإنترنت. أعد الاتصال ثم حاول مجددًا.</p>
+  <button type="button" onclick="location.reload()">Retry · Réessayer · إعادة المحاولة</button>
+</main>
+</body>
+</html>

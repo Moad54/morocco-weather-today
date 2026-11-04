@@ -202,3 +202,12 @@ body { background: var(--page); color: var(--text); }
 [data-theme="light"] [class*="divide-white"] > * { border-color: var(--line) !important; }
 [data-theme="light"] .day [class*="text-white"], [data-theme="light"] .city-card [class*="text-white"] { color: var(--muted); }
 [data-theme="light"] .chip[data-on="true"] [class*="text-white"] { color: var(--hi-text); }
+
+/* Small phones: keep the navigation controls inside the card (they total ~328px at default size; 360px phones leave ~288px). */
+@media (max-width: 639px) { .nav-right { flex-wrap: wrap; row-gap: 8px; } }
+@media (max-width: 420px) {
+  .nav-right { gap: 6px; }
+  .nav-btn { width: 40px; height: 40px; }
+  .seg button { min-width: 32px; height: 34px; padding: 0 6px; }
+  .nav-pill { height: 40px; padding: 0 12px; }
+}

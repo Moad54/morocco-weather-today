@@ -15,6 +15,7 @@ import { Dock, DockKey } from "@/components/Dock";
 import { Glass } from "@/components/Glass";
 import { Header } from "@/components/Header";
 import { HourlyCard } from "@/components/HourlyCard";
+import { MapBoundary } from "@/components/MapBoundary";
 import { MetricsGrid } from "@/components/MetricsGrid";
 import { RainChanceChart } from "@/components/RainChanceChart";
 import { SunCard } from "@/components/SunCard";
@@ -112,7 +113,7 @@ export default function Page() {
           </Glass>
         )}
         {!all && !problem && (
-          <div role="status" aria-label={t.loading} className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+          <div role="status" aria-label={t.loading} className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
             <div className="skeleton h-80" /><div className="skeleton h-80" />
             <div className="skeleton h-[520px]" /><div className="skeleton h-[520px]" />
           </div>
@@ -120,9 +121,9 @@ export default function Page() {
 
         {all && (
           <div className="mt-6 space-y-5">
-            {problem && <p className="text-center text-xs text-orange-300" role="alert">{t.stale}</p>}
+            {problem && <p className="text-center text-xs text-orange-300" role="alert">{typeof navigator !== "undefined" && !navigator.onLine ? t.offlineNote : t.stale}</p>}
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
               <section id="temperature" aria-label={t.daily} className="min-w-0 pt-1">
                 <WeeklyForecast f={all[idx]} lang={lang} t={t} sel={day} onSel={setDay} />
               </section>
@@ -131,14 +132,15 @@ export default function Page() {
               </section>
             </div>
 
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-              <div className="min-w-0"><WeatherMap all={all} sel={sel} lang={lang} t={t} onPick={setSel} layer={layer} onLayer={changeLayer} /></div>
-              <div className="relative max-h-[560px] min-h-[360px] xl:max-h-none">
-                <div className="xl:absolute xl:inset-0"><CitiesPanel all={all} sel={sel} lang={lang} t={t} onPick={setSel} /></div>
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+              <div className="min-w-0"><MapBoundary t={t}><WeatherMap all={all} sel={sel} lang={lang} t={t} onPick={setSel} layer={layer} onLayer={changeLayer} /></MapBoundary></div>
+              {/* Fixed height below xl so the inner list's h-full resolves and scrolls; on xl it stretches to the map's row height. */}
+              <div className="relative h-[480px] xl:h-auto">
+                <div className="h-full xl:absolute xl:inset-0"><CitiesPanel all={all} sel={sel} lang={lang} t={t} onPick={setSel} /></div>
               </div>
             </div>
 
-            <div className="grid gap-5 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
               <CurrentCard city={CITIES[idx]} f={all[idx]} lang={lang} t={t} />
               <div className="space-y-5 lg:col-span-2">
                 <HourlyCard f={all[idx]} t={t} />
@@ -146,7 +148,7 @@ export default function Page() {
               </div>
             </div>
             <DailyCard f={all[idx]} lang={lang} t={t} />
-            <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
               <SunCard f={all[idx]} t={t} />
               <ThunderCard all={all} lang={lang} t={t} onPick={setSel} />
               <AlertsCard all={all} lang={lang} t={t} />

@@ -2,10 +2,12 @@
 
 Next.js 14 · React 18 · TypeScript (strict) · Tailwind CSS · Leaflet · Lucide · Open-Meteo (no API key).
 
-> **Verification status — please read.** This v2.0 redesign was written in an environment **without network access**.
-> `npm install`, `npm run build`, `npm run dev` and `tsc` against the real dependencies were **NOT executed**, and the app was **never opened in a browser**.
-> What *was* done: a static type-check with stand-in declarations for the uninstalled packages (no errors in project code), a check that every import resolves,
-> and a check that every translation key used exists in English, French and Arabic. Treat everything else as untested and run the steps below first.
+> **Verification status — please read.** This build was prepared in an environment whose network policy **blocked the npm registry (HTTP 403)**.
+> `npm install`, `npm run build`, `next dev` and `tsc` against the real dependencies were therefore **NOT executed**.
+> What *was* done: (1) `tsc --strict` over all project files with stand-in declarations for react/next/leaflet/lucide (0 errors; JSX attribute names are not checked by the stand-ins);
+> (2) the real `app/page.tsx` bundled with esbuild (all imports resolve) and rendered in Chromium with mocked Open-Meteo data at 320, 360, 390 (RTL), 768, 1024 and 1440 px — no horizontal overflow; Leaflet and Lucide were stubbed there, so the map and icons were not visually verified;
+> (3) `public/sw.js` tested in Chromium (precache, control, offline fallback); (4) `scripts/check-structure.mjs` passes.
+> Run the steps below first and send back any build error.
 
 ## Run locally (Node 18.17+; `.nvmrc` pins 20)
     npm install
@@ -28,6 +30,13 @@ If the build prints type errors, send them back — they are most likely small p
 2. Framework preset: Next.js (auto-detected). Install command `npm install`, build command `npm run build`, output directory default. Root Directory empty.
 3. No environment variables are needed (Open-Meteo, RainViewer, CARTO and Esri tiles are keyless).
 4. Deploy. `app/api/wind/route.ts` runs as a serverless route and caches the upstream call for 30 minutes.
+
+## v2.1 additions
+- **PWA:** `public/manifest.webmanifest`, icons in `public/icons/` (192, 512, maskable 512, apple-touch 180, favicon), `public/sw.js` (app shell + static assets only; weather data, tiles and `/api/*` are never cached), `public/offline.html` (EN/FR/AR), `components/RegisterSW.tsx` (production only), cache headers in `next.config.mjs`.
+- **Map resilience:** base-map fallback chain (CARTO → OpenStreetMap; Esri → CARTO → OSM), notices on tile/overlay failure, RainViewer fetch timeout + validation + retry, `MapBoundary` error boundary, wind-API timeout/shape check, place-search error message.
+- **RainViewer:** it discontinued satellite/infrared data on 1 Jan 2026, so the *Clouds* layer shows a notice unless the API advertises frames again.
+- **Layout fixes:** grid blowout that caused horizontal scrolling on phones, cities list overflowing below `xl`, header controls and 14-day rows at 320–360 px.
+- `next/font/google` downloads fonts at build time, so the build needs internet access (Vercel has it).
 
 ## What changed in v2.0
 **New:** `components/WeeklyForecast.tsx`, `RainChanceChart.tsx`, `CitiesPanel.tsx`, `LangSwitch.tsx`, `lib/format.ts`, `lib/useTheme.ts`.

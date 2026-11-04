@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "Morocco Weather Today",
+  "short_name": "Maroc Météo",
+  "description": "Live weather, 7-day forecasts, rain probability, radar and alerts across Morocco.",
+  "lang": "en",
+  "dir": "auto",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#050507",
+  "theme_color": "#0b0b0e",
+  "categories": ["weather", "utilities"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Weather map",
+      "short_name": "Map",
+      "url": "/map",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
