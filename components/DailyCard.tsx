@@ -17,16 +17,16 @@ export function DailyCard({ f, lang, t }: { f: Forecast; lang: Lang; t: Dict }) 
         <h2 className="text-base font-semibold text-white/90">{t.daily}</h2>
         <div className="flex gap-1">
           {([7, 14] as const).map((v) => (
-            <button key={v} data-on={n === v} onClick={() => setN(v)} className="chip px-3 py-1 text-xs">{v === 7 ? t.d7 : t.d14}</button>
+            <button type="button" key={v} data-on={n === v} onClick={() => setN(v)} className="chip px-3 py-1 text-xs">{v === 7 ? t.d7 : t.d14}</button>
           ))}
         </div>
       </div>
       <ul className="divide-y divide-white/10">
         {d.time.slice(0, n).map((day, i) => (
-          <li key={day} className="grid grid-cols-[84px_28px_64px_1fr] items-center gap-3 py-2.5 text-sm sm:grid-cols-[110px_28px_72px_1fr]">
+          <li key={day} className="grid grid-cols-[84px_28px_64px_minmax(0,1fr)] items-center gap-3 py-2.5 text-sm max-[380px]:grid-cols-[64px_24px_minmax(0,1fr)] max-[380px]:gap-2 sm:grid-cols-[110px_28px_72px_minmax(0,1fr)]">
             <span className="truncate">{i === 0 ? t.today : fmt.format(new Date(day + "T12:00"))}</span>
             <WeatherIcon kind={kind(d.weather_code[i])} size={22} />
-            <span className="flex items-center gap-1 text-xs text-ice" dir="ltr"><Droplets size={12} />{(d.precipitation_sum[i] ?? 0).toFixed(1)} {t.mm}</span>
+            <span className="flex items-center gap-1 text-xs text-ice max-[380px]:hidden" dir="ltr"><Droplets size={12} />{(d.precipitation_sum[i] ?? 0).toFixed(1)} {t.mm}</span>
             <div className="flex items-center gap-2" dir="ltr">
               <span className="w-7 text-end text-white/60">{Math.round(d.temperature_2m_min[i])}°</span>
               <div className="relative h-1.5 flex-1 rounded-full bg-white/10">

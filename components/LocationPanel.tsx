@@ -44,12 +44,12 @@ export function LocationPanel({ pt, lang, t, onClose }: { pt: Pt; lang: Lang; t:
     <div className="glass rise max-h-[55dvh] overflow-y-auto p-5 lg:max-h-full">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0"><h2 className="truncate text-base font-semibold">{title}</h2><p className="text-xs text-white/50" dir="ltr">{pt.lat.toFixed(2)}, {pt.lon.toFixed(2)}</p></div>
-        <button onClick={onClose} aria-label={t.close} className="chip grid h-9 w-9 shrink-0 place-items-center"><X size={16} /></button>
+        <button type="button" onClick={onClose} aria-label={t.close} className="chip grid h-9 w-9 shrink-0 place-items-center"><X size={16} /></button>
       </div>
       {st === "load" && <div className="skeleton h-40" role="status" aria-label={t.loading} />}
       {st === "err" && (
         <div className="py-6 text-center text-sm text-white/70"><p>{t.errBody}</p>
-          <button onClick={() => setRetry((n) => n + 1)} className="chip mt-3 inline-flex items-center gap-2 px-4 py-2"><RefreshCw size={14} />{t.retry}</button></div>
+          <button type="button" onClick={() => setRetry((n) => n + 1)} className="chip mt-3 inline-flex items-center gap-2 px-4 py-2"><RefreshCw size={14} />{t.retry}</button></div>
       )}
       {st === "ok" && d && (
         <>

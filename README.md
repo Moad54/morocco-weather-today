@@ -9,6 +9,8 @@ Next.js 14 · React 18 · TypeScript (strict) · Tailwind CSS · Leaflet · Luci
 > (3) `public/sw.js` tested in Chromium (precache, control, offline fallback); (4) `scripts/check-structure.mjs` passes.
 > Run the steps below first and send back any build error.
 
+> Full test report (what was and was not verified): see `VERIFICATION-REPORT.md`. Run `npm run verify:online` on a machine with internet to check every external API.
+
 ## Run locally (Node 18.17+; `.nvmrc` pins 20)
     npm install
     npm run typecheck     # tsc --noEmit
