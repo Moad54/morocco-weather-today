@@ -8,7 +8,7 @@ const required = [
   "lib/cities.ts", "lib/i18n.ts", "lib/weather.ts",
   ...["Glass", "WeatherIcon", "Header", "CurrentCard", "HourlyCard", "DailyCard", "MetricsGrid", "ThunderCard", "AlertsCard", "WeatherMap", "Dock", "SunCard", "WeeklyForecast", "RainChanceChart", "CitiesPanel", "LangSwitch"].map((n) => `components/${n}.tsx`),
   "components/FullMap.tsx", "components/LocationPanel.tsx", "components/MapBoundary.tsx", "components/RegisterSW.tsx",
-  "public/manifest.webmanifest", "public/sw.js", "public/offline.html", "public/icons/icon-192.png", "public/icons/icon-512.png", "public/icons/icon-maskable-512.png", "public/icons/apple-touch-icon.png", "lib/windField.ts", "lib/windParticles.ts", "lib/useLang.ts", "lib/useTheme.ts", "lib/format.ts", "app/map/page.tsx", "app/api/wind/route.ts",
+  "public/manifest.webmanifest", "public/sw.js", "public/offline.html", "public/icons/icon-192.png", "public/icons/icon-512.png", "public/icons/icon-maskable-512.png", "public/icons/apple-touch-icon.png", "lib/windField.ts", "lib/windParticles.ts", "lib/useLang.ts", "lib/useTheme.ts", "lib/format.ts", "app/map/page.tsx", "app/api/wind/route.ts", "app/api/map-weather/route.ts", "app/api/map-air/route.ts", "app/api/map-marine/route.ts",
   "tsconfig.json", "tailwind.config.ts", "postcss.config.mjs", "next.config.mjs",
 ];
 const missing = required.filter((f) => !existsSync(f));

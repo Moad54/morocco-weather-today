@@ -16,8 +16,14 @@ const Btn = ({ children, label, on, onClick }: { children: ReactNode; label: str
 );
 
 export default function FullMap({ lang, t, onLang }: { lang: Lang; t: Dict; onLang: (l: Lang) => void }) {
-  const el = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null);
-  const map = useRef<L.Map | null>(null), mk = useRef<L.CircleMarker | null>(null);
+  const el = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), weatherCv = useRef<HTMLCanvasElement>(null);
+  const [mapLayer, setMapLayer] = useState<"wind" | "temp" | "rain" | "cloud" | "humidity" | "pressure" | "snow" | "fog" | "air" | "waves" | "radar">("wind");
+  const [weatherGrid, setWeatherGrid] = useState<{ points: { lat: number; lon: number; temperature_2m: number; precipitation: number; cloud_cover: number; relative_humidity_2m: number; pressure_msl: number; snowfall: number; visibility: number }[] } | null>(null);
+  const [gridError, setGridError] = useState(false);
+  const [airGrid, setAirGrid] = useState<{points: {lat:number; lon:number; european_aqi?:number; pm2_5?:number}[]} | null>(null);
+  const [marineGrid, setMarineGrid] = useState<{points: {lat:number; lon:number; wave_height?:number}[]} | null>(null);
+  const [extraError, setExtraError] = useState(false);
+  const map = useRef<L.Map | null>(null), mk = useRef<L.CircleMarker | null>(null), radarLayer = useRef<L.TileLayer | null>(null);
   const [field, setField] = useState<Field | null>(null);
   const [wErr, setWErr] = useState(false), [wOn, setWOn] = useState(true);
   const [tileMsg, setTileMsg] = useState<"" | "basemap" | "tiles">(""), [qErr, setQErr] = useState(false);
@@ -52,6 +58,87 @@ export default function FullMap({ lang, t, onLang }: { lang: Lang; t: Dict; onLa
   }, []);
 
   useEffect(() => {
+    const ac = new AbortController();
+    fetch("/api/map-weather", { signal: ac.signal })
+      .then((r) => { if (!r.ok) throw new Error("grid"); return r.json(); })
+      .then((j) => { if (!Array.isArray(j?.points) || !j.points.length) throw new Error("shape"); setWeatherGrid(j); setGridError(false); })
+      .catch(() => { if (!ac.signal.aborted) setGridError(true); });
+    return () => ac.abort();
+  }, []);
+
+  useEffect(() => {
+    const ac = new AbortController();
+    Promise.all([
+      fetch("/api/map-air", { signal: ac.signal }).then(r => { if (!r.ok) throw new Error("air"); return r.json(); }),
+      fetch("/api/map-marine", { signal: ac.signal }).then(r => { if (!r.ok) throw new Error("marine"); return r.json(); }),
+    ]).then(([air, marine]) => { setAirGrid(air); setMarineGrid(marine); setExtraError(false); })
+      .catch(() => { if (!ac.signal.aborted) setExtraError(true); });
+    return () => ac.abort();
+  }, []);
+
+  // RainViewer radar tiles are a separate observational layer; availability depends on regional coverage.
+  useEffect(() => {
+    setExtraError(false);
+    const m = map.current;
+    if (!m) return;
+    radarLayer.current?.remove(); radarLayer.current = null;
+    if (mapLayer !== "radar") return;
+    const ac = new AbortController();
+    fetch("https://api.rainviewer.com/public/weather-maps.json", { signal: ac.signal })
+      .then(r => { if (!r.ok) throw new Error("radar"); return r.json(); })
+      .then((j: any) => {
+        const nowcast = j?.radar?.nowcast ?? []; const past = j?.radar?.past ?? [];
+        const frame = nowcast[nowcast.length - 1] ?? past[past.length - 1];
+        const activeMap = map.current;
+        if (!frame?.path || ac.signal.aborted || !activeMap) throw new Error("no radar frame");
+        const layer = L.tileLayer(`https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0.72, attribution: "Radar © RainViewer", maxZoom: 11 });
+        layer.addTo(activeMap); radarLayer.current = layer;
+      }).catch(() => { if (!ac.signal.aborted) setExtraError(true); });
+    return () => { ac.abort(); radarLayer.current?.remove(); radarLayer.current = null; };
+  }, [mapLayer]);
+
+  useEffect(() => {
+    const m = map.current, canvas = weatherCv.current;
+    if (!m || !canvas || !weatherGrid) return;
+    const draw = () => {
+      const size = m.getSize(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = size.x * dpr; canvas.height = size.y * dpr;
+      canvas.style.width = `${size.x}px`; canvas.style.height = `${size.y}px`;
+      const ctx = canvas.getContext("2d"); if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, size.x, size.y);
+      if (mapLayer === "wind" || mapLayer === "radar") return;
+      const cfg: Record<string, { key: string; min: number; max: number; colors: [number, number, number][] }> = {
+        temp: { key: "temperature_2m", min: -5, max: 45, colors: [[35,90,220],[35,190,220],[70,190,100],[245,205,55],[225,65,45]] },
+        rain: { key: "precipitation", min: 0, max: 12, colors: [[90,150,220],[40,190,220],[35,145,100],[245,205,50],[210,55,55]] },
+        cloud: { key: "cloud_cover", min: 0, max: 100, colors: [[240,190,70],[170,190,205],[90,110,145],[55,65,95]] },
+        humidity: { key: "relative_humidity_2m", min: 0, max: 100, colors: [[230,175,70],[100,190,160],[45,135,210],[80,80,190]] },
+        pressure: { key: "pressure_msl", min: 980, max: 1040, colors: [[75,100,205],[50,175,205],[90,180,110],[230,190,65],[205,75,65]] },
+        snow: { key: "snowfall", min: 0, max: 5, colors: [[160,190,220],[100,180,225],[235,245,255]] },
+        fog: { key: "visibility", min: 0, max: 24000, colors: [[65,75,95],[130,145,155],[205,215,220]] },
+        air: { key: "european_aqi", min: 0, max: 150, colors: [[65,170,95],[205,205,65],[235,145,45],[205,65,55]] },
+        waves: { key: "wave_height", min: 0, max: 5, colors: [[70,150,210],[35,190,195],[245,195,75],[210,65,65]] },
+      };
+      const c = cfg[mapLayer]; if (!c) return;
+      const sourcePoints = mapLayer === "air" ? airGrid?.points : mapLayer === "waves" ? marineGrid?.points : weatherGrid?.points;
+      if (!sourcePoints) return;
+      const radius = Math.max(34, Math.min(110, 72 * Math.pow(1.18, m.getZoom() - 6)));
+      sourcePoints.forEach((p: any) => {
+        const value = (p as any)[c.key]; if (typeof value !== "number" || !Number.isFinite(value)) return;
+        const ratio = Math.max(0, Math.min(0.999, (value - c.min) / (c.max - c.min)));
+        const idx = Math.min(c.colors.length - 2, Math.floor(ratio * (c.colors.length - 1)));
+        const mix = ratio * (c.colors.length - 1) - idx, a = c.colors[idx], b = c.colors[idx + 1];
+        const rgb = a.map((v, i) => Math.round(v + (b[i] - v) * mix));
+        const pt = m.latLngToContainerPoint([p.lat, p.lon]);
+        const g = ctx.createRadialGradient(pt.x, pt.y, 2, pt.x, pt.y, radius);
+        g.addColorStop(0, `rgba(${rgb.join(",")},0.48)`); g.addColorStop(1, `rgba(${rgb.join(",")},0)`);
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2); ctx.fill();
+      });
+    };
+    draw(); m.on("move zoom resize", draw);
+    return () => { m.off("move zoom resize", draw); };
+  }, [weatherGrid, airGrid, marineGrid, mapLayer]);
+
+  useEffect(() => {
     let off = false;
     const ac = new AbortController();
     const timer = setTimeout(() => ac.abort(), 15000);
@@ -69,9 +156,9 @@ export default function FullMap({ lang, t, onLang }: { lang: Lang; t: Dict; onLa
 
   useEffect(() => {
     const m = map.current, c = cv.current;
-    if (!m || !c || !field || !wOn) return;
+    if (!m || !c || !field || !wOn || mapLayer !== "wind") return;
     return startParticles(m, c, field, window.innerWidth < 640 ? 900 : 1800);
-  }, [field, wOn]);
+  }, [field, wOn, mapLayer]);
 
   useEffect(() => {
     const m = map.current; if (!m) return;
@@ -105,6 +192,7 @@ export default function FullMap({ lang, t, onLang }: { lang: Lang; t: Dict; onLa
   return (
     <div className="absolute inset-0 overflow-hidden">
       <div ref={el} className="absolute inset-0" dir="ltr" />
+      <canvas ref={weatherCv} className="pointer-events-none absolute inset-0 z-[430]" aria-hidden />
       <canvas ref={cv} className="pointer-events-none absolute inset-0 z-[450]" aria-hidden />
 
       <div className="absolute inset-x-3 top-[calc(env(safe-area-inset-top,0px)+12px)] z-[1000] flex items-center gap-2 lg:start-24">
@@ -127,17 +215,36 @@ export default function FullMap({ lang, t, onLang }: { lang: Lang; t: Dict; onLa
       </div>
 
       <div className="glass absolute start-3 top-[calc(env(safe-area-inset-top,0px)+72px)] z-[1000] max-w-[calc(100%-1.5rem)] !rounded-full px-4 py-1.5 text-[11px] text-white/75 lg:start-24" role="status">
-        {wErr ? t.windErr : !field ? t.loading : `${t.windLayer} · ${t.source}: Open-Meteo · ${field.grid.time.slice(11, 16)}`}
+        {mapLayer === "wind" ? (wErr ? t.windErr : !field ? t.loading : `${t.windLayer} · ${t.source}: Open-Meteo · ${field.grid.time.slice(11, 16)}`) : (gridError ? t.noData : `${({temp:"Temperature",rain:"Precipitation",cloud:"Cloud cover",humidity:"Humidity",pressure:"Pressure",snow:"Snowfall",fog:"Visibility / fog",air:"Air quality · European AQI",waves:"Wave height",radar:"Rain radar · RainViewer"} as Record<string,string>)[mapLayer]} · {mapLayer === "air" ? "Open-Meteo Air Quality" : mapLayer === "waves" ? "Open-Meteo Marine" : mapLayer === "radar" ? "RainViewer" : "Open-Meteo"}`)}
         {!pt && !wErr && <span className="hidden sm:inline"> · {t.tapMap}</span>}
       </div>
+      {extraError && (mapLayer === "air" || mapLayer === "waves" || mapLayer === "radar") && <div className="glass absolute inset-x-3 top-[calc(env(safe-area-inset-top,0px)+144px)] z-[1000] mx-auto w-fit max-w-[calc(100%-1.5rem)] !rounded-full px-4 py-2 text-center text-xs text-orange-300" role="status">{lang === "ar" ? "تعذر تحميل هذه الطبقة حالياً أو لا تتوفر تغطية كافية." : lang === "fr" ? "Cette couche est momentanément indisponible ou sans couverture." : "This layer is temporarily unavailable or has limited coverage."}</div>}
       {tileMsg && <div className="glass absolute inset-x-3 top-[calc(env(safe-area-inset-top,0px)+144px)] z-[1000] mx-auto w-fit max-w-[calc(100%-1.5rem)] !rounded-full px-4 py-2 text-center text-xs text-orange-300 lg:start-24 lg:inset-x-auto lg:mx-0" role="status">{tileMsg === "tiles" ? t.tilesErr : t.basemapFb}</div>}
       {msg && <div className="glass absolute inset-x-3 top-[calc(env(safe-area-inset-top,0px)+108px)] z-[1000] mx-auto w-fit !rounded-full px-4 py-2 text-xs text-orange-300 lg:start-24 lg:mx-0" role="alert">{msg}</div>}
+
+      <div className="glass absolute inset-x-3 top-[calc(env(safe-area-inset-top,0px)+180px)] z-[1000] flex max-w-[calc(100%-1.5rem)] gap-1.5 overflow-x-auto !rounded-2xl p-2 lg:inset-x-auto lg:top-auto lg:bottom-5 lg:start-24 lg:max-w-[calc(100%-8rem)]" role="group" aria-label="Weather layers">
+        {([
+          ["wind", lang === "ar" ? "الرياح" : lang === "fr" ? "Vent" : "Wind"],
+          ["temp", lang === "ar" ? "الحرارة" : lang === "fr" ? "Température" : "Temperature"],
+          ["rain", lang === "ar" ? "الأمطار" : lang === "fr" ? "Pluie" : "Rain"],
+          ["cloud", lang === "ar" ? "السحب" : lang === "fr" ? "Nuages" : "Clouds"],
+          ["humidity", lang === "ar" ? "الرطوبة" : lang === "fr" ? "Humidité" : "Humidity"],
+          ["pressure", lang === "ar" ? "الضغط" : lang === "fr" ? "Pression" : "Pressure"],
+          ["snow", lang === "ar" ? "الثلوج" : lang === "fr" ? "Neige" : "Snow"],
+          ["fog", lang === "ar" ? "الضباب" : lang === "fr" ? "Brouillard" : "Fog"],
+          ["air", lang === "ar" ? "جودة الهواء" : lang === "fr" ? "Qualité air" : "Air quality"],
+          ["waves", lang === "ar" ? "الأمواج" : lang === "fr" ? "Vagues" : "Waves"],
+          ["radar", lang === "ar" ? "الرادار" : lang === "fr" ? "Radar" : "Radar"],
+        ] as const).map(([key, label]) => <button key={key} type="button" data-on={mapLayer === key} aria-pressed={mapLayer === key} onClick={() => setMapLayer(key)} className="chip shrink-0 px-3 py-2 text-xs">{label}</button>)}
+      </div>
 
       <div className="glass absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+16px)] z-[1000] mx-auto flex w-fit gap-2 !rounded-full p-2 lg:inset-x-auto lg:bottom-auto lg:start-5 lg:top-1/2 lg:mx-0 lg:-translate-y-1/2 lg:flex-col lg:!rounded-[2rem]">
         <Btn label={t.zoomIn} onClick={() => map.current?.zoomIn()}><Plus size={20} /></Btn>
         <Btn label={t.zoomOut} onClick={() => map.current?.zoomOut()}><Minus size={20} /></Btn>
         <Btn label={t.locate} onClick={locate}><LocateFixed size={20} /></Btn>
-        <Btn label={t.toggleWind} on={wOn} onClick={() => setWOn((v) => !v)}><Wind size={20} /></Btn>
+        <Btn label={t.toggleWind} on={mapLayer === "wind" && wOn} onClick={() => {
+          if (mapLayer !== "wind") { setMapLayer("wind"); setWOn(true); } else setWOn((v) => !v);
+        }}><Wind size={20} /></Btn>
       </div>
 
       {pt && (

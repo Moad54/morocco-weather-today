@@ -33,6 +33,12 @@ If the build prints type errors, send them back — they are most likely small p
 3. No environment variables are needed (Open-Meteo, RainViewer, CARTO and Esri tiles are keyless).
 4. Deploy. `app/api/wind/route.ts` runs as a serverless route and caches the upstream call for 30 minutes.
 
+## Weather map layer update
+- The full-screen `/map` now includes selectable Open-Meteo grid overlays for temperature, precipitation, cloud cover, humidity, pressure, snowfall and visibility, alongside the existing animated wind field.
+- New keyless endpoint: `/api/map-weather`. It requests a 9 × 11 model grid over Morocco and is cached for 30 minutes. The map renders a smoothed visualization from these grid points; it is **not** a high-resolution observation/radar product.
+- The existing dashboard map retains its RainViewer precipitation radar where coverage is available, plus its satellite/base-map options.
+- Not included as verified live map layers: official warnings, air quality, ocean waves, tropical cyclone tracks, or satellite cloud imagery. These need distinct sources and have regional coverage/availability constraints. Do not treat forecast-derived app alerts as official warnings.
+
 ## v2.1 additions
 - **PWA:** `public/manifest.webmanifest`, icons in `public/icons/` (192, 512, maskable 512, apple-touch 180, favicon), `public/sw.js` (app shell + static assets only; weather data, tiles and `/api/*` are never cached), `public/offline.html` (EN/FR/AR), `components/RegisterSW.tsx` (production only), cache headers in `next.config.mjs`.
 - **Map resilience:** base-map fallback chain (CARTO → OpenStreetMap; Esri → CARTO → OSM), notices on tile/overlay failure, RainViewer fetch timeout + validation + retry, `MapBoundary` error boundary, wind-API timeout/shape check, place-search error message.
@@ -66,3 +72,10 @@ If the build prints type errors, send them back — they are most likely small p
 - Weather icons are Lucide line icons, not the 3-D icons of the reference. Map markers use emoji.
 - Alerts are derived from forecast thresholds, not official warnings (see marocmeteo.ma).
 - The 21-location, 14-day request is large; Open-Meteo's free tier may rate-limit heavy use (the UI shows a message if it does).
+
+## v2.2 full-map data layers
+- Added **Air quality** from the free Open-Meteo Air Quality API (`/api/map-air`): European AQI and particulate/gas fields are available in the response; the map visualizes European AQI. This is modelled grid data, not a regulatory monitor reading.
+- Added **Waves** from the free Open-Meteo Marine API (`/api/map-marine`): significant wave height is visualized where ocean grid cells return data. Coastal coverage can be sparse and inland cells are intentionally blank.
+- Added **Radar** from RainViewer's public weather-map metadata and tile service. Radar availability, latency and geographic coverage are controlled by RainViewer; this is not a guaranteed full-country radar feed.
+- All three endpoints are server-side, cached, and require no API key. Air/marine are cached for one hour; the browser reports unavailable layers rather than inventing values.
+- Official Morocco weather warnings, authoritative cyclone tracks, and a national official alert polygon feed are **not yet integrated**. Existing app alerts remain forecast-derived and must not be represented as official DGM warnings. These sources need verification and a stable public feed before being drawn as authoritative map overlays.
