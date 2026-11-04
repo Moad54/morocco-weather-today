@@ -31,3 +31,7 @@ Map: CARTO dark tiles, Esri satellite, RainViewer radar/cloud overlays.
   Delete the `lib/components/` folder on GitHub (press `t` in the repo and search `page.tsx` to find every copy).
 - Vercel → Settings → General → Root Directory must be empty (or the folder that contains `package.json`).
 - Redeploy without the build cache.
+
+## Phase 1 — Full-screen weather map (`/map`)
+Real Open-Meteo wind grid (cached server-side 30 min via `app/api/wind/route.ts`) drives animated particles; tap anywhere for live local conditions;
+search uses Open-Meteo geocoding (Morocco only); geolocation asks permission. Weatherstack is not integrated yet (planned for a later phase).

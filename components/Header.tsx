@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Languages, MapPin, Search } from "lucide-react";
+import Link from "next/link";
+import { Languages, Map as MapIcon, MapPin, Search } from "lucide-react";
 import { CITIES } from "@/lib/cities";
 import { Dict, Lang } from "@/lib/i18n";
 
@@ -40,6 +41,9 @@ export function Header({ lang, t, onLang, onPick }: Props) {
             </ul>
           )}
         </div>
+        <Link href="/map" aria-label={t.fullMap} className="glass flex items-center gap-2 !rounded-full px-4 py-3 text-sm font-medium focus-visible:ring-2 focus-visible:ring-volt">
+          <MapIcon size={16} /><span className="hidden sm:inline">{t.fullMap}</span>
+        </Link>
         <button onClick={() => onLang(lang === "en" ? "ar" : "en")} aria-label="Switch language"
           className="glass flex items-center gap-2 !rounded-full px-4 py-3 text-sm font-medium focus-visible:ring-2 focus-visible:ring-volt">
           <Languages size={16} />{lang === "en" ? "العربية" : "English"}
