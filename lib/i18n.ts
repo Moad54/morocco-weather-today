@@ -1,4 +1,6 @@
-export type Lang = "en" | "ar";
+export type Lang = "en" | "fr" | "ar";
+export const LANGS: Lang[] = ["en", "fr", "ar"];
+
 const en = {
   title: "Morocco Weather Today", sub: "Live conditions from Open-Meteo", search: "Search a Moroccan city", noMatch: "No city matches your search.",
   feels: "Feels like", updated: "Updated", hourly: "Next 24 hours", daily: "Forecast", d7: "7 days", d14: "14 days",
@@ -8,16 +10,47 @@ const en = {
   alertsNote: "Generated from Open-Meteo forecast thresholds. For official warnings see Direction Générale de la Météorologie (marocmeteo.ma).",
   map: "Weather map", lMap: "Map", lSat: "Satellite", lRain: "Precipitation", lCloud: "Clouds", radarNote: "Radar and cloud layers by RainViewer; coverage over Morocco may be partial.",
   overview: "Across Morocco", loading: "Loading live weather…", errTitle: "Weather data unavailable", errBody: "Could not reach Open-Meteo. Check your connection and try again.", retry: "Try again",
+  errRate: "Too many requests to Open-Meteo. Please wait a minute and try again.", errData: "Open-Meteo returned an unexpected response.",
+  stale: "Showing the last data that loaded — the latest refresh failed.", radarErr: "Radar overlay is unavailable right now.",
   high: "H", low: "L", today: "Today", kmh: "km/h", mm: "mm",
   fullMap: "Full map", back: "Back", searchPlace: "Search a place in Morocco", locate: "My location", locateDenied: "Location permission denied or unavailable.", locateUnsupported: "Geolocation is not supported on this device.",
   windLayer: "Wind", windErr: "Wind data unavailable", source: "Source", tapMap: "Tap the map for local weather", nearest: "Near", cloud: "Cloud cover", you: "My location", close: "Close", zoomIn: "Zoom in", zoomOut: "Zoom out", toggleWind: "Wind particles",
   sun: "Sunrise & sunset", sunrise: "Sunrise", sunset: "Sunset", daylight: "Daylight",
+  tomorrow: "Tomorrow", next7: "Next 7 days", chanceRain: "Chance of rain", chanceDaily: "Daily maximum", peak: "Peak", now: "Now", realFeel: "Real feel",
+  viewWide: "View wide", notifications: "Notifications", notifNone: "No active alerts.", theme: "Theme", themeLight: "Light theme", themeDark: "Dark theme", language: "Language",
+  morocco: "Morocco", cities: "Moroccan cities", noData: "No data",
   nav: { label: "Quick navigation", clouds: "Clouds", wind: "Wind", satellite: "Satellite", temp: "Temperature", rain: "Rain" },
   lvl: { yellow: "Be aware", orange: "Be prepared", red: "Take action" },
   at: { wind: "Strong wind gusts", rain: "Heavy rain", heat: "Extreme heat", storm: "Thunderstorms" },
   wc: { clear: "Clear", partly: "Partly cloudy", cloudy: "Overcast", fog: "Fog", drizzle: "Drizzle", rain: "Rain", snow: "Snow", storm: "Thunderstorm" },
   dir: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
 };
+
+const fr: typeof en = {
+  title: "Météo Maroc Aujourd'hui", sub: "Conditions en direct via Open-Meteo", search: "Rechercher une ville marocaine", noMatch: "Aucune ville ne correspond.",
+  feels: "Ressenti", updated: "Mis à jour", hourly: "24 prochaines heures", daily: "Prévisions", d7: "7 jours", d14: "14 jours",
+  details: "Atmosphère", humidity: "Humidité", pressure: "Pression", wind: "Vent", gusts: "Rafales", rainNow: "Pluie actuelle", prob: "Risque de pluie",
+  thunder: "Suivi des orages", thunderNone: "Aucun orage prévu dans les 48 prochaines heures.", thunderAt: "Prévu vers",
+  alerts: "Alertes météo sévères", alertsNone: "Aucune condition sévère dans les prévisions à 3 jours.",
+  alertsNote: "Générées à partir des seuils des prévisions Open-Meteo. Pour les bulletins officiels, consultez la Direction Générale de la Météorologie (marocmeteo.ma).",
+  map: "Carte météo", lMap: "Carte", lSat: "Satellite", lRain: "Précipitations", lCloud: "Nuages", radarNote: "Couches radar et nuages par RainViewer ; la couverture sur le Maroc peut être partielle.",
+  overview: "À travers le Maroc", loading: "Chargement de la météo en direct…", errTitle: "Données météo indisponibles", errBody: "Impossible de joindre Open-Meteo. Vérifiez votre connexion et réessayez.", retry: "Réessayer",
+  errRate: "Trop de requêtes vers Open-Meteo. Patientez une minute puis réessayez.", errData: "Open-Meteo a renvoyé une réponse inattendue.",
+  stale: "Affichage des dernières données chargées — l'actualisation a échoué.", radarErr: "La couche radar est indisponible pour le moment.",
+  high: "Max", low: "Min", today: "Aujourd'hui", kmh: "km/h", mm: "mm",
+  fullMap: "Carte plein écran", back: "Retour", searchPlace: "Rechercher un lieu au Maroc", locate: "Ma position", locateDenied: "Autorisation de localisation refusée ou indisponible.", locateUnsupported: "La géolocalisation n'est pas prise en charge sur cet appareil.",
+  windLayer: "Vent", windErr: "Données de vent indisponibles", source: "Source", tapMap: "Touchez la carte pour la météo locale", nearest: "Près de", cloud: "Couverture nuageuse", you: "Ma position", close: "Fermer", zoomIn: "Zoom avant", zoomOut: "Zoom arrière", toggleWind: "Particules de vent",
+  sun: "Lever et coucher du soleil", sunrise: "Lever", sunset: "Coucher", daylight: "Durée du jour",
+  tomorrow: "Demain", next7: "7 prochains jours", chanceRain: "Risque de pluie", chanceDaily: "Maximum quotidien", peak: "Pic", now: "Maintenant", realFeel: "Ressenti",
+  viewWide: "Vue large", notifications: "Notifications", notifNone: "Aucune alerte active.", theme: "Thème", themeLight: "Thème clair", themeDark: "Thème sombre", language: "Langue",
+  morocco: "Maroc", cities: "Villes marocaines", noData: "Aucune donnée",
+  nav: { label: "Navigation rapide", clouds: "Nuages", wind: "Vent", satellite: "Satellite", temp: "Température", rain: "Pluie" },
+  lvl: { yellow: "Soyez attentif", orange: "Soyez prêt", red: "Agissez" },
+  at: { wind: "Fortes rafales", rain: "Fortes pluies", heat: "Chaleur extrême", storm: "Orages" },
+  wc: { clear: "Dégagé", partly: "Partiellement nuageux", cloudy: "Couvert", fog: "Brouillard", drizzle: "Bruine", rain: "Pluie", snow: "Neige", storm: "Orage" },
+  dir: ["N", "NE", "E", "SE", "S", "SO", "O", "NO"],
+};
+
 const ar: typeof en = {
   title: "طقس المغرب اليوم", sub: "أحوال مباشرة من Open-Meteo", search: "ابحث عن مدينة مغربية", noMatch: "لا توجد مدينة مطابقة.",
   feels: "تبدو كأنها", updated: "آخر تحديث", hourly: "الـ 24 ساعة القادمة", daily: "التوقعات", d7: "7 أيام", d14: "14 يومًا",
@@ -27,15 +60,21 @@ const ar: typeof en = {
   alertsNote: "تنبيهات مستخرجة من عتبات توقعات Open-Meteo. للنشرات الرسمية راجع المديرية العامة للأرصاد الجوية (marocmeteo.ma).",
   map: "خريطة الطقس", lMap: "الخريطة", lSat: "الأقمار الصناعية", lRain: "التساقطات", lCloud: "السحب", radarNote: "طبقتا الرادار والسحب من RainViewer وقد تكون التغطية فوق المغرب جزئية.",
   overview: "عبر المغرب", loading: "جارٍ تحميل الطقس المباشر…", errTitle: "بيانات الطقس غير متاحة", errBody: "تعذر الاتصال بـ Open-Meteo. تحقق من اتصالك وحاول مجددًا.", retry: "إعادة المحاولة",
+  errRate: "طلبات كثيرة إلى Open-Meteo. انتظر دقيقة ثم أعد المحاولة.", errData: "أعاد Open-Meteo استجابة غير متوقعة.",
+  stale: "يتم عرض آخر بيانات تم تحميلها — فشل التحديث الأخير.", radarErr: "طبقة الرادار غير متاحة حاليًا.",
   high: "ع", low: "د", today: "اليوم", kmh: "كم/س", mm: "مم",
   fullMap: "الخريطة الكاملة", back: "رجوع", searchPlace: "ابحث عن مكان في المغرب", locate: "موقعي", locateDenied: "تم رفض إذن الموقع أو أنه غير متاح.", locateUnsupported: "الجهاز لا يدعم تحديد الموقع.",
   windLayer: "الرياح", windErr: "بيانات الرياح غير متاحة", source: "المصدر", tapMap: "اضغط على الخريطة لمعرفة الطقس المحلي", nearest: "قرب", cloud: "الغطاء السحابي", you: "موقعي", close: "إغلاق", zoomIn: "تكبير", zoomOut: "تصغير", toggleWind: "جسيمات الرياح",
   sun: "الشروق والغروب", sunrise: "الشروق", sunset: "الغروب", daylight: "مدة النهار",
+  tomorrow: "غدًا", next7: "الأيام السبعة القادمة", chanceRain: "احتمال المطر", chanceDaily: "الحد الأقصى اليومي", peak: "الذروة", now: "الآن", realFeel: "الإحساس الفعلي",
+  viewWide: "عرض أوسع", notifications: "الإشعارات", notifNone: "لا توجد تنبيهات حالية.", theme: "المظهر", themeLight: "المظهر الفاتح", themeDark: "المظهر الداكن", language: "اللغة",
+  morocco: "المغرب", cities: "مدن مغربية", noData: "لا توجد بيانات",
   nav: { label: "تنقل سريع", clouds: "السحب", wind: "الرياح", satellite: "القمر الصناعي", temp: "الحرارة", rain: "الأمطار" },
   lvl: { yellow: "انتباه", orange: "استعداد", red: "تحرك" },
   at: { wind: "هبات رياح قوية", rain: "أمطار غزيرة", heat: "حرارة شديدة", storm: "عواصف رعدية" },
   wc: { clear: "صافٍ", partly: "غائم جزئيًا", cloudy: "غائم", fog: "ضباب", drizzle: "رذاذ", rain: "مطر", snow: "ثلج", storm: "عاصفة رعدية" },
   dir: ["شمال", "شمال شرق", "شرق", "جنوب شرق", "جنوب", "جنوب غرب", "غرب", "شمال غرب"],
 };
-export const T = { en, ar };
+
+export const T: Record<Lang, typeof en> = { en, fr, ar };
 export type Dict = typeof en;

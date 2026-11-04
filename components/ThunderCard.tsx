@@ -1,5 +1,5 @@
 import { CloudLightning } from "lucide-react";
-import { CITIES } from "@/lib/cities";
+import { CITIES, cityName } from "@/lib/cities";
 import { Dict, Lang } from "@/lib/i18n";
 import { Forecast, stormHour } from "@/lib/weather";
 import { Glass, H } from "./Glass";
@@ -16,7 +16,7 @@ export function ThunderCard({ all, lang, t, onPick }: { all: Forecast[]; lang: L
           {hits.map(({ i, at }) => (
             <li key={i}>
               <button onClick={() => onPick(CITIES[i].id)} className="chip flex w-full items-center justify-between !rounded-2xl px-4 py-3 text-sm">
-                <span className="flex items-center gap-2"><CloudLightning size={18} className="text-yellow-300" />{lang === "ar" ? CITIES[i].ar : CITIES[i].en}</span>
+                <span className="flex items-center gap-2"><CloudLightning size={18} className="text-yellow-300" />{cityName(CITIES[i], lang)}</span>
                 <span className="text-white/65" dir="ltr">{t.thunderAt} {at!.slice(5, 10)} {at!.slice(11, 16)}</span>
               </button>
             </li>

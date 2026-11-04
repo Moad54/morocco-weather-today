@@ -3,10 +3,11 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
-import { ArrowLeft, Languages, LocateFixed, Minus, Plus, Search, Wind } from "lucide-react";
+import { ArrowLeft, LocateFixed, Minus, Plus, Search, Wind } from "lucide-react";
 import { Dict, Lang } from "@/lib/i18n";
 import { Field, toField, WindGrid } from "@/lib/windField";
 import { startParticles } from "@/lib/windParticles";
+import { LangSwitch } from "./LangSwitch";
 import { LocationPanel, Pt } from "./LocationPanel";
 
 interface Hit { name: string; sub?: string; lat: number; lon: number }
@@ -93,7 +94,7 @@ export default function FullMap({ lang, t, onLang }: { lang: Lang; t: Dict; onLa
             </ul>
           )}
         </div>
-        <button onClick={() => onLang(lang === "en" ? "ar" : "en")} aria-label="Switch language" className="glass grid h-12 w-12 shrink-0 place-items-center !rounded-full"><Languages size={18} /></button>
+        <LangSwitch lang={lang} onLang={onLang} label={t.language} />
       </div>
 
       <div className="glass absolute start-3 top-[calc(env(safe-area-inset-top,0px)+72px)] z-[1000] max-w-[calc(100%-1.5rem)] !rounded-full px-4 py-1.5 text-[11px] text-white/75 lg:start-24" role="status">

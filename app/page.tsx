@@ -1,24 +1,27 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { CITIES } from "@/lib/cities";
 import { T } from "@/lib/i18n";
 import { useLang } from "@/lib/useLang";
-import { Forecast, MapLayer, fetchAll, kind } from "@/lib/weather";
+import { useTheme } from "@/lib/useTheme";
+import { Forecast, MapLayer, WeatherError, deriveAlerts, fetchAll, kind } from "@/lib/weather";
 import { AlertsCard } from "@/components/AlertsCard";
+import { CitiesPanel } from "@/components/CitiesPanel";
 import { CurrentCard } from "@/components/CurrentCard";
 import { DailyCard } from "@/components/DailyCard";
-import { SunCard } from "@/components/SunCard";
 import { Dock, DockKey } from "@/components/Dock";
 import { Glass } from "@/components/Glass";
 import { Header } from "@/components/Header";
 import { HourlyCard } from "@/components/HourlyCard";
 import { MetricsGrid } from "@/components/MetricsGrid";
-import { Overview } from "@/components/Overview";
+import { RainChanceChart } from "@/components/RainChanceChart";
+import { SunCard } from "@/components/SunCard";
 import { ThunderCard } from "@/components/ThunderCard";
+import { DaySel, WeeklyForecast } from "@/components/WeeklyForecast";
 
-const WeatherMap = dynamic(() => import("@/components/WeatherMap"), { ssr: false, loading: () => <div className="skeleton h-[520px]" /> });
+const WeatherMap = dynamic(() => import("@/components/WeatherMap"), { ssr: false, loading: () => <div className="skeleton h-[560px]" /> });
 
 // Exhaustive switch: every MapLayer is handled, and the `never` check fails the build if a new layer is added without a mapping.
 const layerKey = (l: MapLayer): DockKey | null => {
@@ -33,11 +36,15 @@ const layerKey = (l: MapLayer): DockKey | null => {
   }
 };
 
+type Problem = "network" | "rate" | "data";
+
 export default function Page() {
   const [lang, setLang] = useLang();
+  const [theme, setTheme] = useTheme();
   const [all, setAll] = useState<Forecast[] | null>(null);
-  const [error, setError] = useState(false);
+  const [problem, setProblem] = useState<Problem | null>(null);
   const [sel, setSel] = useState("casablanca");
+  const [day, setDay] = useState<DaySel>(0);
   const [layer, setLayer] = useState<MapLayer>("map");
   const [active, setActive] = useState<DockKey | null>(null);
   const layerRef = useRef<MapLayer>("map");
@@ -45,10 +52,15 @@ export default function Page() {
   const t = T[lang];
 
   const load = useCallback(async () => {
-    try { setAll(await fetchAll()); setError(false); } catch { setError(true); }
+    try { setAll(await fetchAll()); setProblem(null); }
+    catch (e) { setProblem(e instanceof WeatherError ? e.reason : "network"); }
   }, []);
-  useEffect(() => { load(); const id = setInterval(load, 10 * 60 * 1000); return () => clearInterval(id); }, [load]);
-  useEffect(() => { document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; }, [lang]);
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 10 * 60 * 1000);
+    window.addEventListener("online", load);
+    return () => { clearInterval(id); window.removeEventListener("online", load); };
+  }, [load]);
 
   const changeLayer = useCallback((l: MapLayer) => { layerRef.current = l; setLayer(l); setActive(layerKey(l)); }, []);
 
@@ -76,49 +88,73 @@ export default function Page() {
   }, [all]);
 
   const idx = Math.max(0, CITIES.findIndex((c) => c.id === sel));
-  // Weather-themed ambient background (clear / rain / storm / night ...) from the selected city's live conditions.
+  // Weather-themed ambience hook (kept from the original app) from the selected city's live conditions.
   useEffect(() => {
     if (!all) return;
     const c = all[idx].current;
     document.body.dataset.wx = c.is_day ? kind(c.weather_code) : "night";
   }, [all, idx]);
+
+  const alerts = useMemo(() => (all ? deriveAlerts(all) : []), [all]);
+  const message = problem === "rate" ? t.errRate : problem === "data" ? t.errData : t.errBody;
+
   return (
-    <main className="mx-auto max-w-7xl space-y-5 max-w-[1500px] px-4 pb-40 pt-[calc(env(safe-area-inset-top,0px)+24px)] sm:px-6 sm:pb-44 lg:pb-14 lg:pe-8 lg:ps-28 lg:pt-10">
-      <Header lang={lang} t={t} onLang={setLang} onPick={setSel} />
-      {!all && error && (
-        <Glass className="flex flex-col items-center gap-3 py-14 text-center" >
-          <AlertTriangle size={36} className="text-orange-300" />
-          <h2 className="text-xl font-semibold">{t.errTitle}</h2>
-          <p className="max-w-md text-sm text-white/65">{t.errBody}</p>
-          <button onClick={load} className="chip flex items-center gap-2 px-5 py-2 text-sm"><RefreshCw size={14} />{t.retry}</button>
-        </Glass>
-      )}
-      {!all && !error && (
-        <div role="status" aria-label={t.loading} className="grid gap-5 lg:grid-cols-3">
-          <div className="skeleton h-96" /><div className="skeleton h-96 lg:col-span-2" />
-        </div>
-      )}
-      {all && (
-        <>
-          {error && <p className="text-center text-xs text-orange-300">{t.errBody}</p>}
-          <Overview all={all} sel={sel} lang={lang} t={t} onPick={setSel} />
-          <div className="grid gap-5 lg:grid-cols-3">
-            <CurrentCard city={CITIES[idx]} f={all[idx]} lang={lang} t={t} />
-            <div className="space-y-5 lg:col-span-2">
-              <HourlyCard f={all[idx]} t={t} />
-              <MetricsGrid f={all[idx]} t={t} />
+    <main className="mx-auto max-w-[1560px] px-3 pb-36 pt-[calc(env(safe-area-inset-top,0px)+12px)] sm:px-5 lg:pb-8 lg:pe-6 lg:ps-28">
+      <div className="shell">
+        <Header lang={lang} t={t} onLang={setLang} theme={theme} onTheme={setTheme} sel={sel} onPick={setSel} alerts={alerts} />
+
+        {!all && problem && (
+          <Glass className="mt-6 flex flex-col items-center gap-3 py-14 text-center">
+            <AlertTriangle size={36} className="text-orange-300" />
+            <h2 className="text-xl font-semibold">{t.errTitle}</h2>
+            <p className="max-w-md text-sm text-white/65" role="alert">{message}</p>
+            <button type="button" onClick={load} className="chip flex items-center gap-2 px-5 py-2 text-sm"><RefreshCw size={14} />{t.retry}</button>
+          </Glass>
+        )}
+        {!all && !problem && (
+          <div role="status" aria-label={t.loading} className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="skeleton h-80" /><div className="skeleton h-80" />
+            <div className="skeleton h-[520px]" /><div className="skeleton h-[520px]" />
+          </div>
+        )}
+
+        {all && (
+          <div className="mt-6 space-y-5">
+            {problem && <p className="text-center text-xs text-orange-300" role="alert">{t.stale}</p>}
+
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+              <section id="temperature" aria-label={t.daily} className="min-w-0 pt-1">
+                <WeeklyForecast f={all[idx]} lang={lang} t={t} sel={day} onSel={setDay} />
+              </section>
+              <section aria-label={t.chanceRain} className="min-w-0 pt-1 xl:ps-2">
+                <RainChanceChart f={all[idx]} lang={lang} t={t} sel={day} />
+              </section>
             </div>
+
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+              <div className="min-w-0"><WeatherMap all={all} sel={sel} lang={lang} t={t} onPick={setSel} layer={layer} onLayer={changeLayer} /></div>
+              <div className="relative max-h-[560px] min-h-[360px] xl:max-h-none">
+                <div className="xl:absolute xl:inset-0"><CitiesPanel all={all} sel={sel} lang={lang} t={t} onPick={setSel} /></div>
+              </div>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-3">
+              <CurrentCard city={CITIES[idx]} f={all[idx]} lang={lang} t={t} />
+              <div className="space-y-5 lg:col-span-2">
+                <HourlyCard f={all[idx]} t={t} />
+                <MetricsGrid f={all[idx]} t={t} />
+              </div>
+            </div>
+            <DailyCard f={all[idx]} lang={lang} t={t} />
+            <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+              <SunCard f={all[idx]} t={t} />
+              <ThunderCard all={all} lang={lang} t={t} onPick={setSel} />
+              <AlertsCard all={all} lang={lang} t={t} />
+            </div>
+            <Dock active={active} t={t} onSelect={go} />
           </div>
-          <DailyCard f={all[idx]} lang={lang} t={t} />
-          <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-            <SunCard f={all[idx]} t={t} />
-            <ThunderCard all={all} lang={lang} t={t} onPick={setSel} />
-            <AlertsCard all={all} lang={lang} t={t} />
-          </div>
-          <WeatherMap all={all} sel={sel} lang={lang} t={t} onPick={setSel} layer={layer} onLayer={changeLayer} />
-          <Dock active={active} t={t} onSelect={go} />
-        </>
-      )}
+        )}
+      </div>
     </main>
   );
 }

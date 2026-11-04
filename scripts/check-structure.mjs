@@ -6,8 +6,8 @@ import { join } from "node:path";
 const required = [
   "app/page.tsx", "app/layout.tsx", "app/globals.css",
   "lib/cities.ts", "lib/i18n.ts", "lib/weather.ts",
-  ...["Glass", "WeatherIcon", "Header", "CurrentCard", "HourlyCard", "DailyCard", "MetricsGrid", "ThunderCard", "AlertsCard", "Overview", "WeatherMap", "Dock", "SunCard"].map((n) => `components/${n}.tsx`),
-  "components/FullMap.tsx", "components/LocationPanel.tsx", "lib/windField.ts", "lib/windParticles.ts", "lib/useLang.ts", "app/map/page.tsx", "app/api/wind/route.ts",
+  ...["Glass", "WeatherIcon", "Header", "CurrentCard", "HourlyCard", "DailyCard", "MetricsGrid", "ThunderCard", "AlertsCard", "WeatherMap", "Dock", "SunCard", "WeeklyForecast", "RainChanceChart", "CitiesPanel", "LangSwitch"].map((n) => `components/${n}.tsx`),
+  "components/FullMap.tsx", "components/LocationPanel.tsx", "lib/windField.ts", "lib/windParticles.ts", "lib/useLang.ts", "lib/useTheme.ts", "lib/format.ts", "app/map/page.tsx", "app/api/wind/route.ts",
   "tsconfig.json", "tailwind.config.ts", "postcss.config.mjs", "next.config.mjs",
 ];
 const missing = required.filter((f) => !existsSync(f));

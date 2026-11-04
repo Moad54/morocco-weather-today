@@ -1,37 +1,57 @@
-# Morocco Weather Today — طقس المغرب اليوم
+# Morocco Weather Today — طقس المغرب اليوم — Météo Maroc Aujourd'hui
 
-Next.js 14 · React 18 · TypeScript · Tailwind CSS · Lucide · Open-Meteo (no API key).
+Next.js 14 · React 18 · TypeScript (strict) · Tailwind CSS · Leaflet · Lucide · Open-Meteo (no API key).
 
-## Run locally
+> **Verification status — please read.** This v2.0 redesign was written in an environment **without network access**.
+> `npm install`, `npm run build`, `npm run dev` and `tsc` against the real dependencies were **NOT executed**, and the app was **never opened in a browser**.
+> What *was* done: a static type-check with stand-in declarations for the uninstalled packages (no errors in project code), a check that every import resolves,
+> and a check that every translation key used exists in English, French and Arabic. Treat everything else as untested and run the steps below first.
+
+## Run locally (Node 18.17+; `.nvmrc` pins 20)
     npm install
-    npm run dev        # http://localhost:3000
+    npm run typecheck     # tsc --noEmit
+    npm run build         # runs scripts/check-structure.mjs first, then next build
+    npm run dev           # http://localhost:3000   (or: npm start after build)
 
-## Production
-    npm run build && npm start
+If the build prints type errors, send them back — they are most likely small prop/typing issues that could not be caught offline.
 
-## Deploy (recommended: Vercel)
-1. Push this folder to a GitHub repo.
-2. vercel.com → Add New Project → import the repo → Deploy (no env vars, no settings to change).
-Netlify / Cloudflare Pages / any Node 18+ host also work (`npm run build`, then `npm start`).
+## Put it on GitHub
+    git init
+    git add .
+    git commit -m "Complete Morocco Weather Today redesign"
+    git branch -M main
+    git remote add origin YOUR_GITHUB_REPOSITORY_URL
+    git push -u origin main
 
-## Structure
-    app/         layout, page, global styles, icon
-    components/Dock.tsx  floating bottom navigation (Liquid Glass)
-    components/  Header, CurrentCard, HourlyCard, DailyCard, MetricsGrid, ThunderCard, AlertsCard, Overview, WeatherMap, Glass, WeatherIcon
-    lib/         cities.ts, i18n.ts (EN/AR), weather.ts (Open-Meteo + alert logic)
+## Deploy on Vercel
+1. vercel.com → Add New → Project → import the GitHub repo.
+2. Framework preset: Next.js (auto-detected). Install command `npm install`, build command `npm run build`, output directory default. Root Directory empty.
+3. No environment variables are needed (Open-Meteo, RainViewer, CARTO and Esri tiles are keyless).
+4. Deploy. `app/api/wind/route.ts` runs as a serverless route and caches the upstream call for 30 minutes.
 
-All 14 cities load in one Open-Meteo request, refreshed every 10 minutes. No data is mocked.
-Alerts are derived from forecast thresholds, not official warnings (see marocmeteo.ma).
-Sunrise/sunset card (SunCard) and weather-themed backgrounds come from the same Open-Meteo data.
-Map layers: map, satellite, precipitation, clouds, wind, temperature (wind/temperature use live Open-Meteo city values).
-Map: CARTO dark tiles, Esri satellite, RainViewer radar/cloud overlays.
+## What changed in v2.0
+**New:** `components/WeeklyForecast.tsx`, `RainChanceChart.tsx`, `CitiesPanel.tsx`, `LangSwitch.tsx`, `lib/format.ts`, `lib/useTheme.ts`.
+**Rewritten:** `components/Header.tsx`, `components/WeatherMap.tsx`, `app/page.tsx`, `app/map/page.tsx`, `lib/cities.ts`, `lib/i18n.ts`, `lib/useLang.ts`.
+**Edited:** `lib/weather.ts` (validation + typed errors; same Open-Meteo request), `app/globals.css` (new theme layer appended), `app/layout.tsx`, `components/FullMap.tsx`, `CurrentCard`, `ThunderCard`, `AlertsCard`, `DailyCard`, `HourlyCard`, `LocationPanel`, `WeatherIcon`, `scripts/check-structure.mjs`, `package.json` (+`typecheck` script), `README.md`.
+**Removed:** `components/Overview.tsx` — superseded by the Moroccan cities panel.
+**Untouched:** `app/api/wind/route.ts`, `lib/windField.ts`, `lib/windParticles.ts`, `Dock`, `SunCard`, `MetricsGrid`, `Glass`, `/map` route.
 
-## Troubleshooting Vercel
-- Build error mentioning `lib/components/app/page.tsx`: that is a stray copy of page.tsx inside your repo (the real one is `app/page.tsx`).
-  Delete the `lib/components/` folder on GitHub (press `t` in the repo and search `page.tsx` to find every copy).
-- Vercel → Settings → General → Root Directory must be empty (or the folder that contains `package.json`).
-- Redeploy without the build cache.
+## Features
+- Dark near-black dashboard shell, rounded navigation bar, light-blue highlighted current day (follows the supplied reference layout).
+- Navigation: logo, selected-city location pill, autocomplete search (English/French/Arabic names, accent-insensitive, arrow-key navigation), notification bell (real derived alerts), light/dark switch, EN/FR/AR selector, full-screen map link.
+- Seven-day horizontal forecast: day, icon, max, min, precipitation probability; today card adds feels-like, wind, pressure, humidity, sunrise, sunset. Tabs: Today / Tomorrow / Next 7 days.
+- Rain chart: hourly precipitation probability for the chosen day, or daily maximum for the week; hover/tap tooltips (probability + mm).
+- Map: Leaflet, dark tiles, Morocco-centred; weather-condition markers with temperature, popups, layers (map, satellite, precipitation, clouds, wind, temperature). Existing `/map` full-screen wind-particle map unchanged.
+- 21 cities (all those requested, plus Essaouira and Taroudant) loaded in one Open-Meteo request; selecting one updates the whole dashboard.
+- Existing 14-day list, hourly strip, atmosphere metrics, sunrise/sunset, thunderstorm tracker and alerts are kept below the new top section.
+- English, French, Arabic (RTL); preference saved in localStorage; switching does not reload.
+- Errors: loading skeletons, retry, rate-limit (429) message, invalid-response message, "last data shown" banner on a failed refresh, auto-retry when the browser comes back online. No fabricated data: missing values render as "–".
 
-## Phase 1 — Full-screen weather map (`/map`)
-Real Open-Meteo wind grid (cached server-side 30 min via `app/api/wind/route.ts`) drives animated particles; tap anywhere for live local conditions;
-search uses Open-Meteo geocoding (Morocco only); geolocation asks permission. Weatherstack is not integrated yet (planned for a later phase).
+## Known limitations
+- Everything above is **untested** at runtime (see status).
+- The reference's "Air quality" toggle and avatar are not implemented (no air-quality data source in the project).
+- The reference's "Explore global map / Get started" overlay card is not included.
+- Light theme is a best-effort remap of the original white-alpha utility classes; expect small contrast issues until it has been checked in a browser. Map tiles stay dark in both themes.
+- Weather icons are Lucide line icons, not the 3-D icons of the reference. Map markers use emoji.
+- Alerts are derived from forecast thresholds, not official warnings (see marocmeteo.ma).
+- The 21-location, 14-day request is large; Open-Meteo's free tier may rate-limit heavy use (the UI shows a message if it does).

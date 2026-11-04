@@ -10,6 +10,19 @@ export interface Forecast {
 export type MapLayer = "map" | "sat" | "rain" | "cloud" | "wind" | "temp";
 export type Kind = "clear" | "partly" | "cloudy" | "fog" | "drizzle" | "rain" | "snow" | "storm";
 
+export class WeatherError extends Error {
+  constructor(public reason: "rate" | "network" | "data", message: string) { super(message); this.name = "WeatherError"; }
+}
+
+const isForecast = (x: unknown): x is Forecast => {
+  const f = x as Partial<Forecast> | null;
+  return !!f && typeof f.current === "object" && f.current !== null && typeof f.current.temperature_2m === "number" && typeof f.current.weather_code === "number"
+    && !!f.hourly && Array.isArray(f.hourly.time) && Array.isArray(f.hourly.temperature_2m) && Array.isArray(f.hourly.weather_code) && Array.isArray(f.hourly.precipitation_probability)
+    && !!f.daily && Array.isArray(f.daily.time) && f.daily.time.length >= 7 && Array.isArray(f.daily.temperature_2m_max) && Array.isArray(f.daily.temperature_2m_min)
+    && Array.isArray(f.daily.weather_code) && Array.isArray(f.daily.precipitation_probability_max) && Array.isArray(f.daily.sunrise) && Array.isArray(f.daily.sunset);
+};
+
+/** One Open-Meteo request for every city in CITIES. Throws WeatherError — never returns substitute data. */
 export async function fetchAll(): Promise<Forecast[]> {
   const p = new URLSearchParams({
     latitude: CITIES.map((c) => c.lat).join(","), longitude: CITIES.map((c) => c.lon).join(","),
@@ -18,10 +31,19 @@ export async function fetchAll(): Promise<Forecast[]> {
     hourly: "temperature_2m,precipitation,weather_code,wind_gusts_10m,precipitation_probability",
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_gusts_10m_max,precipitation_probability_max,sunrise,sunset",
   });
-  const r = await fetch(`https://api.open-meteo.com/v1/forecast?${p}`);
-  if (!r.ok) throw new Error(`Open-Meteo ${r.status}`);
-  const j = await r.json();
-  return Array.isArray(j) ? j : [j];
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 25000);
+  let r: Response;
+  try { r = await fetch(`https://api.open-meteo.com/v1/forecast?${p}`, { signal: ac.signal }); }
+  catch { throw new WeatherError("network", "Network error or timeout"); }
+  finally { clearTimeout(timer); }
+  if (r.status === 429) throw new WeatherError("rate", "Open-Meteo rate limit");
+  if (!r.ok) throw new WeatherError("network", `Open-Meteo ${r.status}`);
+  let j: unknown;
+  try { j = await r.json(); } catch { throw new WeatherError("data", "Invalid JSON"); }
+  const list: unknown[] = Array.isArray(j) ? j : [j];
+  if (list.length !== CITIES.length || !list.every(isForecast)) throw new WeatherError("data", "Unexpected Open-Meteo response shape");
+  return list as Forecast[];
 }
 
 export function kind(code: number): Kind {

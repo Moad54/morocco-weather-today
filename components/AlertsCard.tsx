@@ -1,5 +1,5 @@
 import { AlertTriangle, ShieldCheck } from "lucide-react";
-import { CITIES } from "@/lib/cities";
+import { CITIES, cityName } from "@/lib/cities";
 import { Dict, Lang } from "@/lib/i18n";
 import { Alert, deriveAlerts, Forecast } from "@/lib/weather";
 import { Glass, H } from "./Glass";
@@ -17,7 +17,7 @@ export function AlertsCard({ all, lang, t }: { all: Forecast[]; lang: Lang; t: D
         <ul className="space-y-2">
           {list.map((a) => (
             <li key={a.city + a.type} className={`flex items-center justify-between gap-3 rounded-2xl border bg-white/5 px-4 py-3 text-sm ${tone[a.level]}`}>
-              <span className="flex items-center gap-2"><AlertTriangle size={18} />{t.at[a.type]} — <b className="text-white">{lang === "ar" ? CITIES[a.city].ar : CITIES[a.city].en}</b></span>
+              <span className="flex items-center gap-2"><AlertTriangle size={18} />{t.at[a.type]} — <b className="text-white">{cityName(CITIES[a.city], lang)}</b></span>
               <span className="text-xs" dir="ltr">{t.lvl[a.level]} · {a.when.slice(5, 10)}</span>
             </li>
           ))}

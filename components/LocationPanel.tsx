@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Droplets, Gauge, Navigation, RefreshCw, Thermometer, Cloud, CloudRain, Wind, X } from "lucide-react";
-import { CITIES } from "@/lib/cities";
+import { CITIES, cityName } from "@/lib/cities";
 import { Dict, Lang } from "@/lib/i18n";
 import { compass, kind } from "@/lib/weather";
 import { WeatherIcon } from "./WeatherIcon";
@@ -34,7 +34,7 @@ export function LocationPanel({ pt, lang, t, onClose }: { pt: Pt; lang: Lang; t:
   }, [pt.lat, pt.lon, retry]);
 
   const near = CITIES.map((c) => ({ c, d: km(pt, c) })).sort((a, b) => a.d - b.d)[0];
-  const title = pt.label ?? `${t.nearest} ${lang === "ar" ? near.c.ar : near.c.en} · ${Math.round(near.d)} km`;
+  const title = pt.label ?? `${t.nearest} ${cityName(near.c, lang)} · ${Math.round(near.d)} km`;
   const k = d ? kind(d.weather_code) : "clear";
   const Tile = ({ icon, label, v }: { icon: React.ReactNode; label: string; v: string }) => (
     <div className="chip !rounded-2xl p-3"><p className="flex items-center gap-1.5 text-xs text-white/60">{icon}{label}</p><p className="mt-1 text-lg font-medium" dir="ltr">{v}</p></div>
