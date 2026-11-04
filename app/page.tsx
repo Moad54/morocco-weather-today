@@ -3,7 +3,8 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { CITIES } from "@/lib/cities";
-import { Lang, T } from "@/lib/i18n";
+import { T } from "@/lib/i18n";
+import { useLang } from "@/lib/useLang";
 import { Forecast, MapLayer, fetchAll, kind } from "@/lib/weather";
 import { AlertsCard } from "@/components/AlertsCard";
 import { CurrentCard } from "@/components/CurrentCard";
@@ -33,7 +34,7 @@ const layerKey = (l: MapLayer): DockKey | null => {
 };
 
 export default function Page() {
-  const [lang, setLang] = useState<Lang>("en");
+  const [lang, setLang] = useLang();
   const [all, setAll] = useState<Forecast[] | null>(null);
   const [error, setError] = useState(false);
   const [sel, setSel] = useState("casablanca");
